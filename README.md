@@ -271,3 +271,213 @@ for (let key in user) {
   alert( user[key] ); // John, 30, true
 }
 ```
+## オブジェクトのクローン（マージ）
+```js
+let user = {
+  name: "John",
+  age: 30
+};
+
+let clone = Object.assign({}, user);
+```
+## ネストされたクローン
+JavaScript ライブラリlodash にある_.cloneDeep(obj) を利用
+https://lodash.com/docs#cloneDeep
+# メソッド中の “this”
+```js
+let user = { name: "John" };
+let admin = { name: "Admin" };
+
+function sayHi() {
+  alert( this.name );
+}
+
+// 2つのオブジェクトで同じ関数を使う
+user.f = sayHi;
+admin.f = sayHi;
+
+// これらの呼び出しは異なる this を持ちます
+// 関数の中の "this" は "ドット" の前のオブジェクトです
+user.f(); // John  (this == user)
+admin.f(); // Admin  (this == admin)
+
+admin['f'](); // Admin (ドットでも角括弧でも問題なくメソッドにアクセスできます)
+```
+## オブジェクトなしでの呼び出し: this == undefined
+```js
+function sayHi() {
+  alert(this);
+}
+
+sayHi(); // undefined
+```
+非 strict モード(誰かが use strict を忘れた場合)では、このようなケースでは this の値は グローバルオブジェクト (ブラウザでは window、後ほど学びます)になります。
+## アロー関数は “this” を持ちません
+アロー関数は特別で、それらは “自身の” this を持ちません。もしこのような関数で this を参照した場合、外部の “通常の” 関数から取得されます。
+
+例えば、ここで arrow() は、外部の user.sayHi() メソッドから this を使います:
+```js
+let user = {
+  firstName: "Ilya",
+  sayHi() {
+    let arrow = () => alert(this.firstName);
+    arrow();
+  }
+};
+
+user.sayHi(); // Ilya
+```
+# コンストラクタ 関数
+似たようなオブジェクトを多数作成する必要がある場合
+1. 名前は大文字で始めます。
+2. "new" 演算子を使ってのみ実行されるべきです。
+```js
+function User(name) {
+  // this = {};  (暗黙)
+
+  // this へプロパティを追加
+  this.name = name;
+  this.isAdmin = false;
+
+  // return this;  (暗黙)
+}
+
+let user1 = new User("Jack");
+let user2 = new User("Ann");
+let user3 = new User("Alice");
+```
+どのような関数（this を持たないアロー関数を除く）でもコンストラクタとして使用できます。
+## コンストラクタの呼び出しモードの確認: new.target
+```js
+function User() {
+  alert(new.target);
+}
+
+// new なし:
+User(); // undefined
+
+// new あり:
+new User(); // function User { ... }
+
+//-----------------------//
+
+function User(name) {
+  if (!new.target) { // new なしで実行した場合
+    return new User(name); // ...new を追加します
+  }
+
+  this.name = name;
+}
+
+let john = User("John"); // new User へのリダイレクト
+alert(john.name); // John
+```
+## コンストラクタの中のメソッド
+```js
+function User(name) {
+  this.name = name;
+
+  this.sayHi = function() {
+    alert( "My name is: " + this.name );
+  };
+}
+
+let john = new User("John");
+
+john.sayHi(); // My name is: John
+
+/*
+john = {
+   name: "John",
+   sayHi: function() { ... }
+}
+*/
+```
+# オプショナルチェイニング(Optional chaining) '?.'
+```js
+let userAdmin = {
+  admin() {
+    alert("I am admin");
+  }
+};
+
+let userGuest = {};
+
+userAdmin.admin?.(); // I am admin
+
+userGuest.admin?.(); // なにもしない (このようなメソッドはありません)
+
+//-----------------------//
+
+let key = "firstName";
+
+let user1 = {
+  firstName: "John"
+};
+
+let user2 = null;
+
+alert( user1?.[key] ); // John
+alert( user2?.[key] ); // undefined
+
+//-----------------------//
+
+delete user?.name; // user が存在する場合、 user.name を削除します
+```
+# シンボル型
+## 使用理由
+```js
+let user = { // 別のコードに属しているオブジェクト
+  name: "John"
+};
+
+let id = Symbol("id");
+
+user[id] = 1;
+
+alert( user[id] ); // キーとして symbol を使ってデータにアクセスできます
+```
+user オブジェクトは別のコードに属しており、コードはそこでも動作するので、そこに単純に任意のフィールドを追加するべきではありません。それは安全ではありません。しかし、シンボルは誤ってアクセスすることはできず、サードパーティのコードは恐らく見ることすらできないため、恐らく問題になりません。
+## symbol.description プロパティ
+```js
+let id = Symbol("id");
+alert(id.description); // id
+// symbol.description プロパティを利用して、説明のみを表示
+```
+## シンボルは for…in ではスキップされます。
+```js
+let id = Symbol("id");
+let user = {
+  name: "John",
+  age: 30,
+  [id]: 123
+};
+
+for (let key in user) alert(key); // name, age (no symbols)
+
+// symbol による直アクセスは動作します
+alert( "Direct: " + user[id] );
+```
+## グローバルシンボル
+同じ名前のシンボルを同じエンティティにしたいとき使用
+```js
+// グローバルレジストリから読む
+let id = Symbol.for("id"); // symbol が存在しない場合、作られます
+
+// 再度読み込み
+let idAgain = Symbol.for("id");
+
+// 同じシンボル
+alert( id === idAgain ); // true
+```
+## symbol から名前を取得
+```js
+let globalSymbol = Symbol.for("name");
+let localSymbol = Symbol("name");
+
+// symbol から名前を取得
+alert( Symbol.keyFor(globalSymbol) ); // name, グローバルシンボル
+alert( Symbol.keyFor(localSymbol) ); // undefined, グローバルではないので
+
+alert( localSymbol.description ); // name
+```
