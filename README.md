@@ -1,3 +1,79 @@
+# break/continue のためのラベル
+```js
+outer: for (let i = 0; i < 3; i++) {
+
+  for (let j = 0; j < 3; j++) {
+
+    let input = prompt(`Value at coords (${i},${j})`, '');
+
+    // 文字から文字またはキャンセルされた場合、両方のループから抜ける
+    if (!input) break outer; // (*)
+
+    // 値に何かをする処理...
+  }
+}
+alert('Done!');
+```
+# 数値変換 単項演算子 +
+```js
+// 数値の場合、何の影響もありません
+let x = 1;
+alert( +x ); // 1
+
+let y = -2;
+alert( +y ); // -2
+
+// 非数値を数値に変換します
+alert( +true ); // 1
+alert( +"" );   // 0
+```
+# 8つのデータ型データ型
+* number
+* bigint
+* string
+* boolean
+* null
+* undefined
+* symbol
+* object
+※object 以外はプリミティブ型(primitive type)
+※typeof 演算子は値の型を返します。2つ例外があります:
+```js
+typeof null == "object" // 言語の間違い
+typeof function(){} == "function" // 関数は特別に扱われます
+```
+
+# || && ??
+## ||
+```js
+alert( 1 || 0 ); // 1 (1 は真)
+
+alert( null || 1 ); // 1 (1 は最初の真値)
+alert( null || 0 || 1 ); // 1 (最初の真値)
+
+alert( undefined || null || 0 ); // 0 (すべて偽、なので最後の値が返却される)
+```
+## &&
+```js
+// 最初のオペランドが真の場合、
+// AND は2つ目のオペランドを返す:
+alert( 1 && 0 ); // 0
+alert( 1 && 5 ); // 5
+
+// 最初のオペランドが偽の場合、
+// AND はそれを返します。2つ目のオペランドは無視されます。
+alert( null && 5 ); // null
+alert( 0 && "no matter what" ); // 0
+```
+## ??
+```js
+let firstName = null;
+let lastName = null;
+let nickName = "Supercoder";
+
+// 最初の null/undefined でない値を表示します
+alert(firstName ?? lastName ?? nickName ?? "Anonymous"); // Supercoder
+```
 # 関数式 vs 関数宣言
 ## 関数宣言
 ```js
@@ -112,3 +188,86 @@ https://ja.javascript.info/testing-mocha
 最新のコードを解析し、古い構文を使って書き換える
 2. Polyfill（ポリフィル）
 不足している関数を定義する
+# オブジェクト
+## 生成
+```js
+let user = new Object(); // "オブジェクトコンストラクタ" 構文
+let user = {};  // "オブジェクトリテラル" 構文
+```
+## 参照
+```js
+user.name;
+user['name'];
+```
+## 追加
+```js
+user.isAdmin = true;
+```
+## 削除
+```js
+delete user.age;
+```
+## const オブジェクトは修正できます
+```js
+const user = {
+  name: "John"
+};
+
+user.name = "Pete"; // (*)
+
+alert(user.name); // Pete
+```
+## 算出プロパティ
+オブジェクトリテラルでは、角括弧を使うことができます。それは 算出プロパティ と呼ばれます。
+```js
+let fruit = prompt("Which fruit to buy?", "apple");
+
+let bag = {
+  [fruit]: 5, // プロパティ名は変数 fruit から取られます
+};
+
+alert( bag.apple ); // 5 fruit="apple" の場合
+
+let fruit = 'apple';
+let bag = {
+  [fruit + 'Computers']: 5 // bag.appleComputers = 5
+};
+```
+## プロパティの短縮構文
+```js
+function makeUser(name, age) {
+  return {
+    name, // name: name と同じ
+    age   // age: age と同じ
+    // ...
+  };
+}
+
+let user = makeUser("John", 30);
+alert(user.name); // John
+```
+## プロパティ存在チェック, “in” 演算子
+```js
+// 1.
+let user = {};
+
+alert( user.noSuchProperty === undefined ); // true は "そのようなプロパティはありません" を意味する
+
+// 2.
+"key" in object // return boolean
+```
+## オブジェクトは“for…in” ループ
+```js
+let user = {
+  name: "John",
+  age: 30,
+  isAdmin: true
+};
+
+for (let key in user) {
+  // 키
+  alert( key );  // name, age, isAdmin
+  // 키에 해당하는 값
+  alert( user[key] ); // John, 30, true
+}
+```
