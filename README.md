@@ -84,3 +84,31 @@ welcome(); // エラー: welcome は定義されていません
 たいていのケースでは、関数の宣言が必要な場合、関数宣言が望ましいです。なぜなら、それ自身の宣言の前でも利用することができるからです。これにより、コード構成の柔軟性が増し、通常は読みやすくなります。
 
 従って、関数宣言がそのタスクに適さない場合にのみ関数式を使うべきです。
+
+# デバッガコマンド
+次のように、debugger コマンドを使うことでもコードを停止することができます:
+```js
+function hello(name) {
+  let phrase = `Hello, ${name}!`;
+
+  debugger;  // <-- デバッガはここで止まります
+
+  say(phrase);
+}
+```
+# ESLint
+https://eslint.org/docs/user-guide/getting-started
+1. Node.js をインストールします。
+2. npm install -g eslint コマンドで ESLint をインストールします(npm は Node.js パッケージインストーラです)
+3. JavaScriptプロジェクト(すべてのファイルを含むフォルダ)のルートに .ellintrc という名前の設定ファイルを作ります
+4. ESlint と統合するエディタのプラグインをインストール/有効化します。エディタの大多数はそれを持っています。
+# コメント
+関数の文書化のための特別な構文 JSDoc があります。: 使用方法、パラメータ、返却値
+https://ja.wikipedia.org/wiki/JSDoc
+# mocha による自動テスト
+https://ja.javascript.info/testing-mocha
+# Polyfill（ポリフィル）とトランスパイラ
+1. トランスパイラ
+最新のコードを解析し、古い構文を使って書き換える
+2. Polyfill（ポリフィル）
+不足している関数を定義する
