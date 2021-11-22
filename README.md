@@ -670,3 +670,177 @@ for (let fruit of fruits) {
   alert( fruit );
 }
 ```
+
+# 反復可能な(iterables) オブジェクト
+* for..of が始まると、そのメソッドを呼び出します(なければエラーになります)。
+* メソッドは iterator (メソッド next をもつオブジェクト)を返さなければいけません。
+* for..of が次の値を必要とするとき、そのオブジェクトの next() を呼びます。
+* next() の結果は {done: Boolean, value: any} の形式でなければなりません。そして done=true は繰り返しが終わったことを示します。そうでない場合は、value は新しい値である必要があります。
+
+## 反復オブジェクトする方法１
+```js
+let range = {
+  from: 1,
+  to: 5
+};
+
+// 1. for..of の呼び出しは、最初にこれを呼び出します
+range[Symbol.iterator] = function() {
+
+  // ...これは iterator オブジェクトを返します:
+  // 2. 以降、for..of はこのイテレータでのみ機能し、次の値を要求します
+  return {
+    current: this.from,
+    last: this.to,
+
+    // 3. for..of ループにより、各繰り返しで next() が呼ばれます
+    next() {
+      // 4. オブジェクト {done:.., value :...} を返す必要があります
+      if (this.current <= this.last) {
+        return { done: false, value: this.current++ };
+      } else {
+        return { done: true };
+      }
+    }
+  };
+};
+
+// これで動作します!
+for (let num of range) {
+  alert(num); // 1, 2, 3, 4, 5
+}
+```
+## 反復オブジェクトする方法２
+```js
+let range = {
+  from: 1,
+  to: 5,
+
+  [Symbol.iterator]() {
+    this.current = this.from;
+    return this;
+  },
+
+  next() {
+    if (this.current <= this.to) {
+      return { done: false, value: this.current++ };
+    } else {
+      return { done: true };
+    }
+  }
+};
+
+for (let num of range) {
+  alert(num); // 1, そして 2, 3, 4, 5
+}
+```
+## 反復可能(Iterables) と 配列ライク(array-like)
+### 反復可能(Iterables)
+* Symbol.iterator メソッドを実装したオブジェクト
+### 配列ライク(array-like)
+* インデックスと length を持ったオブジェクトです。なので、これらは配列のように見えます。
+## 配列に変換 - Array.from
+反復可能(Iterables) と 配列ライク(array-like)で配列メソッドを使うため、使用する
+```js
+let arrayLike = {
+  0: "Hello",
+  1: "World",
+  length: 2
+};
+
+let arr = Array.from(arrayLike); // (*)
+alert(arr.pop()); // World (メソッドが動作します)
+```
+# Map
+Map は Object と同じように、キー付されたデータ項目の集まりです。主な違いは Map は任意の型のキーを許可することです。
+```js
+new Map() // 新しい map を作ります.
+map.set(key, value) // キーで、値を格納します.
+map.get(key) // 指定されたキーの値を返却します。map に存在しない key の場合には undefined になります.
+map.has(key) // キーが存在する場合に true を返します。そうでなければ false になります.
+map.delete(key) // キーで値を削除します.
+map.clear() // map をクリアします.
+map.size // 現在の要素の数です.
+map.keys() // キーに対する iterable を返します。
+map.values() // 値に対する iterable を返します。
+map.entries() // エントリ [key, value]　の iterable を返します。これは for..of でデフォルトで使われます。
+map.forEach((value, key, map) => {}); // ループ
+Object.entries() // オブジェクトから Map を生成
+Object.fromEntries(map.entries()); // Map から オブジェクト
+Object.fromEntries(map); // Map から オブジェクト(entryies省略)
+```
+# Set
+Set は、特別タイプのコレクションで、“値の集合” （キーなし）です。それぞれの値は一度しか現れません。
+```js
+new Set(iterable) // set を作ります。オプションで値の配列(任意の iterable が指定可能)からも可能です。
+set.add(value) // 値を追加し、 set 自身を返します。
+set.delete(value) // 値を削除し、value が呼び出し時に存在すれば true, そうでなければ false を返します。
+set.has(value) // set の中に値が存在すれば true を返し、それ以外は false です。
+set.clear() // set から全てを削除します。
+set.size // set の要素数です。
+set.forEach((value, valueAgain, set) => {}); // ループ
+set.keys() // 値に対する iterable なオブジェクトを返します。
+set.values() // set.keys と同じで、Map との互換性のためです。
+set.entries() // [value, value] のエントリのための iterable なオブジェクトを返します。Map の互換性のために存在します。
+```
+Map と Set のイテレーションは常に挿入順で行われます。そのため、これらのコレクションが順序付けられていないとは言えませんが、要素を並べ替えたり、その番号で要素を直接取得することはできません。
+# WeakMap と WeakSet
+WeakMap のキーはプリミティブな値ではなくオブジェクトでなければならない。
+* ユースケース: オブジェクトの追加のデータ格納したい時に使用
+* ユースケース: キャッシュ
+# Object.keys, values, entries
+```js
+Object.keys(obj) // キーの配列を返します。
+Object.values(obj) // 値の配列を返します。
+Object.entries(obj) // [key, value] ペアの配列を返します。
+```
+## オブジェクトの変換
+```js
+let prices = {
+  banana: 1,
+  orange: 2,
+  meat: 4,
+};
+
+let doublePrices = Object.fromEntries(
+  // 配列に変換して map を実行、その後 fromEntries でオブジェクトに戻します
+  Object.entries(prices).map(([key, value]) => [key, value * 2])
+);
+
+alert(doublePrices.meat); // 8
+```
+# 分割代入
+```js
+let options = {
+  title: "My menu",
+  items: ["Item1", "Item2"]
+};
+
+function showMenu({
+  title = "Untitled",
+  width: w = 100,  // width は w に
+  height: h = 200, // height は h に
+  items: [item1, item2] // items の最初の要素は item1 へ、次は item2 へ
+}) {
+  alert( `${title} ${w} ${h}` ); // My Menu 100 200
+  alert( item1 ); // Item1
+  alert( item2 ); // Item2
+}
+
+showMenu(options);
+```
+非構造化対象全体のデフォルト値に {} を指定する
+```js
+function showMenu({ title = "Menu", width = 100, height = 200 } = {}) {
+  alert( `${title} ${width} ${height}` );
+}
+
+showMenu(); // Menu 100 200
+```
+# Date 日付 と 時刻
+https://ja.javascript.info/date
+# JSON メソッド, toJSON
+```js
+JSON.stringify(obj) // オブジェクトをJSONに変換します。
+JSON.parse(json) // JSONをオブジェクトに変換します。
+```
