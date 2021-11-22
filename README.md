@@ -481,3 +481,192 @@ alert( Symbol.keyFor(localSymbol) ); // undefined, グローバルではない�
 
 alert( localSymbol.description ); // name
 ```
+# オブジェクトからプリミティブへの変換
+変換をするために、JavaScriptは3つのオブジェクトのメソッドを見つけ呼び出そうとします。
+1. メソッドが存在する場合、obj[Symbol.toPrimitive]\(hint) を呼び出します
+2. ない場合、hint が "string" であれば
+  * obj.toString() と obj.valueOf() を試します。
+3. そうでなく、hint が "number" であれば
+  * obj.valueOf() と obj.toString() を試します。
+
+## Symbol.toPrimitive
+```js
+let user = {
+  name: "John",
+  money: 1000,
+
+  [Symbol.toPrimitive](hint) {
+    alert(`hint: ${hint}`);
+    return hint == "string" ? `{name: "${this.name}"}` : this.money;
+  }
+};
+
+// 変換動作の確認:
+alert(user); // hint: string -> {name: "John"}
+alert(+user); // hint: number -> 1000
+alert(user + 500); // hint: default -> 1500
+```
+## toString/valueOf
+```js
+let user = {
+  name: "John",
+  money: 1000,
+
+  // hint="string" の場合
+  toString() {
+    return `{name: "${this.name}"}`;
+  },
+
+  // hint="number" or "default" の場合
+  valueOf() {
+    return this.money;
+  }
+
+};
+
+alert(user); // toString -> {name: "John"}
+alert(+user); // valueOf -> 1000
+alert(user + 500); // valueOf -> 1500
+```
+```js
+let user = {
+  name: "John",
+
+  toString() {
+    return this.name;
+  }
+};
+
+alert(user); // toString -> John
+alert(user + 500); // toString -> John500
+```
+# 文字列
+```js
+String.length // 長さ
+
+String.charAt(index) // 文字抽出
+
+String.split( 区切り文字 ) // 配列へ変換
+
+String.concat(String) // 結合
+
+String.trim() // 左右空白除去
+
+String.toUpperCase() // 大文字
+
+String.toLowerCase() // 小文字
+
+String.substr(start, 長さ) // 文字列抽出
+
+String.substring(start, end) // 文字列抽出
+
+String.slice(start, end) // 文字列抽出(マイナス数字使用可能)
+
+String.replace(対象文字列, 新しい文字列) // 置換
+```
+# 数字
+```js
+Number.toFixed(小数点の後に現れる桁の数) // 固定小数点表記
+
+Number.toPrecision(桁数) // 桁数だけの文字列に変換
+
+isNaN(Number) // NaN判定
+
+parseInt(Number, 進法) // 整数変換
+
+parseFloat(Number) // 実数変換
+```
+# 配列
+```js
+Array.length // 長さ
+
+Array.join(区切り文字) // 文字結合
+
+Array.split(区切り文字) // 文字列を配列に変換
+
+Array.concat(Array) // 配列結合
+
+Array.reverse() // 要素反転
+
+Array.unshift(要素) // 最初から要素追加
+
+Array.push(要素) // 最後から要素追加
+
+Array.shift() // 最初の要素を抽出
+
+Array.pop() // 最後の要素を抽出
+
+Array.map(function(値, キー, Array){条件}) // 新しい配列生成
+
+Array.forEach(function(値, キー, Array){条件} ) // 各要素を操作
+
+Array.reduce(function(前の値、次の値){条件}) // 左から右へ各要素に対して関数を実行して、単一の値を返す
+
+  var array = [1, 2, 3, 4, 5];
+  array.reduce(function(prev, cur) {
+    return prev + cur;
+  }); // 15
+
+Array.reduceRight(function(後ろの値、次の値){条件}) // 右から左へ
+
+Array.filter(function(要素, キー, Array){条件}) // 条件に合う要素だけの新しい配列を返す
+
+Array.sort(function( 前の値、次の値){条件}) // 並び替え
+
+Array.slice([start[, end]]) // 配列の一部の浅いコピーを新しい配列オブジェクトに作成
+
+Array.indexOf(検索値, スタートキー) // 検索値と同じ値の要素のキーを返す
+
+Array.lastIndexOf (検索値, スタートキー) // 右から左へ
+
+Array.includes (検索値, スタートキー) // 検索値があるがどうか
+
+Array.find(function(要素, index, Array) {条件}); // 検索要素を探して返す
+
+Array.findIndex (function(要素, index, Array) {条件}); // 検索要素のインデックスを探して返す
+
+Array.every(function(要素){条件}) // 配列のすべての要素が通るかどうかをテスト
+
+Array.some(function(要素){条件}) // 配列の少なくとも 1 つの要素が、渡された関数によって実施されるテストに通るかどうかをテスト
+
+Array.isArray(チェックしたい値) // 配列判定
+```
+## ほとんどのメソッドは “thisArg” をサポートします
+```js
+arr.find(func, thisArg);
+arr.filter(func, thisArg);
+arr.map(func, thisArg);
+// ...
+// thisArg はオプションの最後の引数です
+
+let army = {
+  minAge: 18,
+  maxAge: 27,
+  canJoin(user) {
+    return user.age >= this.minAge && user.age < this.maxAge;
+  }
+};
+
+let users = [
+  {age: 16},
+  {age: 20},
+  {age: 23},
+  {age: 30}
+];
+
+// army.canJoin が true となるユーザを見つけます
+let soldiers = users.filter(army.canJoin, army);
+
+alert(soldiers.length); // 2
+alert(soldiers[0].age); // 20
+alert(soldiers[1].age); // 23
+```
+## 配列のループは"for of"を使用すべき
+```js
+let fruits = ["Apple", "Orange", "Plum"];
+
+// 配列要素の反復処理
+for (let fruit of fruits) {
+  alert( fruit );
+}
+```
