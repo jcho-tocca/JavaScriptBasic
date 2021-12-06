@@ -677,7 +677,7 @@ for (let fruit of fruits) {
 * for..of が次の値を必要とするとき、そのオブジェクトの next() を呼びます。
 * next() の結果は {done: Boolean, value: any} の形式でなければなりません。そして done=true は繰り返しが終わったことを示します。そうでない場合は、value は新しい値である必要があります。
 
-## 反復オブジェクトする方法１
+## 反復オブジェクトにする方法１
 ```js
 let range = {
   from: 1,
@@ -710,7 +710,7 @@ for (let num of range) {
   alert(num); // 1, 2, 3, 4, 5
 }
 ```
-## 反復オブジェクトする方法２
+## 反復オブジェクトにする方法２
 ```js
 let range = {
   from: 1,
@@ -843,4 +843,213 @@ https://ja.javascript.info/date
 ```js
 JSON.stringify(obj) // オブジェクトをJSONに変換します。
 JSON.parse(json) // JSONをオブジェクトに変換します。
+```
+# 残りのパラメータ
+```js
+function sumAll(...args) { // args は配列の名前です
+  let sum = 0;
+
+  for (let arg of args) sum += arg;
+
+  return sum;
+}
+
+alert( sumAll(1) ); // 1
+alert( sumAll(1, 2) ); // 3
+alert( sumAll(1, 2, 3) ); // 6
+```
+```js
+function showName(firstName, lastName, ...titles) {
+  alert( firstName + ' ' + lastName ); // Julius Caesar
+
+  // 残りは titles 配列に入ります
+  // i.e. titles = ["Consul", "Imperator"]
+  alert( titles[0] ); // Consul
+  alert( titles[1] ); // Imperator
+  alert( titles.length ); // 2
+}
+
+showName("Julius", "Caesar", "Consul", "Imperator");
+```
+# “arguments” 変数
+```js
+function showName() {
+  alert( arguments.length );
+  alert( arguments[0] );
+  alert( arguments[1] );
+
+  // 反復可能(iterable) です。
+  // for(let arg of arguments) alert(arg);
+}
+
+// 表示: 2, Julius, Caesar
+showName("Julius", "Caesar");
+
+// 表示: 1, Ilya, undefined (2つ目の引数がないので)
+showName("Ilya");
+```
+※アロー関数は "arguments" を持ちません
+# スプレッド 演算子
+```js
+let arr = [3, 5, 1];
+let arr2 = [8, 9, 15];
+
+let merged = [0, ...arr, 2, ...arr2];
+
+alert(merged); // 0,3,5,1,2,8,9,15 (0, then arr, then 2, then arr2)
+
+// --------------------------
+
+let str = "Hello";
+
+alert( [...str] ); // H,e,l,l,o
+```
+## 配列/オブジェクトのコピー
+### 配列のコピー
+```js
+let arr = [1, 2, 3];
+
+let arrCopy = [...arr]; // 配列をパラメータのリストに展開します
+                        // その後、結果を新しい配列に格納します
+
+// 配列が同じコンテンツを持っているか？
+alert(JSON.stringify(arr) === JSON.stringify(arrCopy)); // true
+
+// 配列は等価か？
+alert(arr === arrCopy); // false (同じ参照ではないため)
+
+// 最初の配列を修正しても、コピーは修正されません:
+arr.push(4);
+alert(arr); // 1, 2, 3, 4
+alert(arrCopy); // 1, 2, 3
+```
+### オブジェクトのコピー
+```js
+let obj = { a: 1, b: 2, c: 3 };
+
+let objCopy = { ...obj }; // オブジェクトをパラメータのリストに展開します
+                          // その後、結果を新しいオブジェクトに結果を返します
+
+// オブジェクトは同じコンテンツを持っているか？
+alert(JSON.stringify(obj) === JSON.stringify(objCopy)); // true
+
+// オブジェクトは等価か？
+alert(obj === objCopy); // false (同じ参照ではありません))
+
+// 最初のオブジェクトを修正しても、コピーは修正されません:
+obj.d = 4;
+alert(JSON.stringify(obj)); // {"a":1,"b":2,"c":3,"d":4}
+alert(JSON.stringify(objCopy)); // {"a":1,"b":2,"c":3}
+```
+※このオブジェクトコピーの方法は、let objCopy = Object.assign({}, obj) 、あるいは、配列の let arrCopy = Object.assign([], arr) よりもはるかに短いです。そのため、可能な場合はこちらの方が好まれます。
+
+# 変数スコープ、クロージャ
+JavaScript では、実行中のすべて関数、コードブロック {...} およびスクリプト全体には、レキシカル環境 と呼ばれる内部の（隠れた）関連オブジェクトがあります。
+
+## Step 1. 変数
+### レキシカル環境オブジェクトの構成
+1. 環境レコード(Environment Record) 。
+  プロパティとしてすべてのローカル変数をもつオブジェクトです(this の値など、他の情報もいくらか持っています)。
+2. 外部のレキシカル環境 への参照。
+  通常、直近の外部のレキシカルなコードに関連付けられています（波括弧の外側）。
+
+* "変数" は単に、特別な内部オブジェクトである 環境レコード のプロパティです。“変数を取得または変更する” とは、“そのオブジェクトのプロパティを取得または変更する” ことを意味します。
+* スクリプト全体に関連付けられた、いわゆるグローバルレキシカル環境です。
+
+
+
+
+
+
+
+
+
+
+
+
+# クラス
+* コンストラクタ関数：既存文法
+* クラス：モーダンな文法（シンタックスシュガー）
+
+## 関数クラスパターン（コンストラクタ関数）
+```js
+function User(name, birthday) {
+
+  // User 内の他のメソッドからのみ見えます
+  function calcAge() {
+    return new Date().getFullYear() - birthday.getFullYear();
+  }
+
+  this.sayHi = function() {
+    alert(name + ', age:' + calcAge());
+  };
+}
+
+let user = new User("John", new Date(2000,0,1));
+user.sayHi(); // John
+```
+## ファクトリークラスパターン（コンストラクタ関数）
+new を全く使わずにクラスを生成することができます。
+```js
+function User(name, birthday) {
+  // User 内の他のメソッドからのみ見えます
+  function calcAge() {
+    return new Date().getFullYear() - birthday.getFullYear();
+  }
+
+  return {
+    sayHi() {
+      alert(name + ', age:' + calcAge());
+    }
+  };
+}
+
+let user = User("John", new Date(2000,0,1));
+user.sayHi(); // John
+```
+## プロトタイプベースのクラス
+```js
+function User(name, birthday) {
+  this._name = name;
+  this._birthday = birthday;
+}
+
+User.prototype._calcAge = function() {
+  return new Date().getFullYear() - this._birthday.getFullYear();
+};
+
+User.prototype.sayHi = function() {
+  alert(this._name + ', age:' + this._calcAge());
+};
+
+let user = new User("John", new Date(2000,0,1));
+user.sayHi(); // John
+```
+## プロトタイプベースの継承
+```js
+// 以前と同じ Animal
+function Animal(name) {
+  this.name = name;
+}
+
+// すべての animals 食べることができますよね?
+Animal.prototype.eat = function() {
+  alert(this.name + ' eats.');
+};
+
+// 以前と同じ Rabbit
+function Rabbit(name) {
+  this.name = name;
+}
+
+Rabbit.prototype.jump = function() {
+  alert(this.name + ' jumps!');
+};
+
+// 継承チェーンを設定します
+Rabbit.prototype.__proto__ = Animal.prototype; // (*)
+
+let rabbit = new Rabbit("White Rabbit");
+rabbit.eat(); // rabbits も食べることができる
+rabbit.jump();
 ```
