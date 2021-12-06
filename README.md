@@ -963,6 +963,7 @@ JavaScript では、実行中のすべて関数、コードブロック {...} �
 ![image](https://user-images.githubusercontent.com/64624465/144796308-e337b2e0-a4f5-45ac-a5e8-dfee78a3610f.png)
 
 ## Step 3. 内外のレキシカル環境
+![image](https://user-images.githubusercontent.com/64624465/144796813-6d839a85-edd4-4140-bcd7-db5d17ac7891.png)
 
 
 
